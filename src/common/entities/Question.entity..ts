@@ -1,3 +1,4 @@
+import { IsNotEmpty } from "class-validator";
 import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import Answer from "./Answer.entity.";
 import Category from "./Category.entity";
@@ -11,7 +12,7 @@ export default class Question {
     @JoinColumn()
     public category: Category;
 
-    @Column()
+    @Column({ nullable: true })
     public number: number;
 
     @Column({ type: "text" })

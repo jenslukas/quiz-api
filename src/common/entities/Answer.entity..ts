@@ -1,3 +1,4 @@
+import { IsNotEmpty } from "class-validator";
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import Question from "./Question.entity.";
 
@@ -6,9 +7,11 @@ export default class Answer {
     @PrimaryGeneratedColumn()
     public id: number;
 
+    @IsNotEmpty()
     @Column({type: "text"})
     public answer: string;
 
+    @IsNotEmpty()
     @Column()
     public correct: boolean;
 

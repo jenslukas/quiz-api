@@ -8,6 +8,6 @@ export default class Category {
     @Column()
     public short_name: string;
 
-    @Column()
+    @Column({ nullable: true})
     public long_name: string;
 }

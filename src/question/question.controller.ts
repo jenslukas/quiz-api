@@ -1,16 +1,29 @@
-import { Controller, Get } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import Question from '../common/entities/Question.entity.';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import CreateQuestionDto from './dto/CreateQuestion.dto';
+import ValidateQuestionDto from './dto/ValidateQuestion.dto';
 import { QuestionService } from './question.service';
 
 @Controller('question')
 export class QuestionController {
-  constructor(private readonly questionService: QuestionService, 
-    @InjectRepository(Question) private questionRepo: Repository<Question>) {}
+  constructor(private readonly questionService: QuestionService) {}
 
     @Get()
     async getQuestions() {
-      return await this.questionRepo.find();
+      return this.questionService.getAllQuestions();
     }   
+
+    @Post('/add')
+    async addQuestion(@Body() addQuestion: CreateQuestionDto) {
+      return this.questionService.addQuestion(addQuestion);
+    }
+
+    @Get('/validate')
+    async getQuestionToValidate() {
+      return this.questionService.getQuestionToValidate();
+    }
+
+    @Post('/validate')
+    async validateAnswers(@Body() dto: ValidateQuestionDto) {
+      return this.questionService.validateAnswers(dto.answerIds);
+    }
 }

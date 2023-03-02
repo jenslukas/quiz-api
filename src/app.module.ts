@@ -7,7 +7,10 @@ import Answer from './common/entities/Answer.entity.';
 import Category from './common/entities/Category.entity';
 import Collection from './common/entities/Collection.entity';
 import Question from './common/entities/Question.entity.';
+import QuestionAnswer from './common/entities/QuestionAnswer.entity';
+import Run from './common/entities/Run.entity';
 import { QuestionModule } from './question/question.module';
+import { QuizModule } from './quiz/quiz.module';
 
 @Module({
   imports: [ConfigModule.forRoot(), TypeOrmModule.forRootAsync({
@@ -27,12 +30,12 @@ import { QuestionModule } from './question/question.module';
       "password": config.get<string>('DB_PASSWORD'),
       "database": config.get<string>('DB_NAME'),
       */
-      "synchronize": true,
+      "synchronize": false,
       "logging": true,
-      "entities": [Question, Answer, Collection, Category]
+      "entities": [Question, Answer, Collection, Category, Run, QuestionAnswer]
     }),
      inject: [ConfigService]
-  }), QuestionModule],
+  }), QuestionModule, QuizModule],
   controllers: [AppController],
   providers: [AppService],
 })

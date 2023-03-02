@@ -1,0 +1,13 @@
+Done
+curl --location --request POST '127.0.0.1:3000/question/validate/' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "answerIds": [3,4]
+}'
+
+
+curl --location --request POST '127.0.0.1:3000/question/validate/' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "answerIds": [6]
+}'
