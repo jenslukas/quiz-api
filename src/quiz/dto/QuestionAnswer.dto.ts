@@ -7,5 +7,5 @@ export default class QuestionAnswerDto {
     public questionId: number;
 
     @IsNotEmpty()
-    public answerIds: number[];
+    public answerIds: string[];
 }

@@ -7,23 +7,28 @@ export class QuizController {
   constructor(
     private readonly quizService: QuizService) {}
 
-    @Post()
-    createNewRun() {
-      return this.quizService.createNewRun();
+    @Post('/:code')
+    createNewRun(@Param('code') code: string) {
+      return this.quizService.createNewRun(code);
     }
 
-    @Get(':id')
-    getNextQuestion(@Param('id') id: number) {
-      return this.quizService.getNextQuestion(id);
+    @Get('/id/:runId')
+    getNextQuestion(@Param('runId') runId: number) {
+      return this.quizService.getNextQuestion(runId);
     }
 
-    @Post(':id')
-    answerQuestion(@Param('id') id: number, @Body() answerDTO: QuestionAnswerDto) {
-      return this.quizService.answerQuestion(id, answerDTO.questionId, answerDTO.answerIds);
+    @Post('/id/:runId')
+    answerQuestion(@Param('runId') runId: number, @Body() answerDTO: QuestionAnswerDto) {
+      return this.quizService.answerQuestion(runId, answerDTO.questionId, answerDTO.answerIds);
     }
 
-    @Get(':id/result')
+    @Get('/:id/result')
     getResult(@Param('id') id: number) {
       return this.quizService.getResult(id);
+    }
+
+    @Get('/list')
+    getRuns() {
+      return this.quizService.getRuns();
     }
 }

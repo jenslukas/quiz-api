@@ -16,20 +16,21 @@ export class QuizService {
         @InjectRepository(QuestionAnswer) private questionAnswerRepo: Repository<QuestionAnswer>
         ) {}
 
-    public async createNewRun() {
+    public async createNewRun(code: string) {
         // by now we get all questions
         let run = new Run();
-        run.code = '1234';
+        run.code = code;
         run.openQuestions = await this.questionRepo.find();
         run = await this.runRepo.save(run);
 
         return run;
     }
 
-    public async getNextQuestion(id: number) {
+    public async getNextQuestion(runId: number) {
         // get next open question for run with id
-        let run = await this.runRepo.findOne({ where: { id: id}, relations: ['openQuestions']});
-        let question = run.openQuestions.pop();
+        let run = await this.runRepo.findOne({ where: { id: runId}, relations: ['openQuestions']});
+        let question = run.openQuestions.shift();
+        question = await this.questionRepo.findOne({ where: { id: question.id}, relations: ['answers']});
         return question;
     }
 
@@ -37,16 +38,25 @@ export class QuizService {
         // check if answers are correct
         // return true if correct, false if not
         let correct = true;
-        for(let i = 0; i < answers.length; i++) {
-            let answer = answers[i];
+        for(let i = 0; i < question.answers.length; i++) {
+            let questionAnswer = question.answers[i];
+            
             let found = false;
-            for(let j = 0; j < question.answers.length; j++) {
-                if(question.answers[j].id === answer.id) {
+            for(let j = 0; j < answers.length; j++) {
+                let userAnswer = answers[j];
+
+                if(questionAnswer.id === userAnswer.id) {
                     found = true;
                     break;
                 }
             }
-            if(!found) {
+
+            if(questionAnswer.correct && !found) {
+                correct = false;
+                break;
+            }
+
+            if(!questionAnswer.correct && found) {
                 correct = false;
                 break;
             }
@@ -55,25 +65,24 @@ export class QuizService {
         return correct;
     }
 
-    public async getResult(id: number) {
+    public async getResult(runId: number) {
         // get result for run with id
-        let run = await this.runRepo.findOne({ where: { id: id}, relations: ['closedQuestions', 'closedQuestions.answers']});
+        let currentRun = await this.runRepo.findOne({ where: { id: runId}, relations: ['openQuestions', 'closedQuestions', 'closedQuestions.answers']});
         let result = {
             openQuestions: 0,
             closedQuestions: 0,
             correctAnswers: 0,
             wrongAnswers: 0
         };
+        result.openQuestions = currentRun.openQuestions.length;
+        result.closedQuestions = currentRun.closedQuestions.length;
 
-        result.openQuestions = run.openQuestions.length;
-        result.closedQuestions = run.closedQuestions.length;
-
-        for(let i = 0; i < run.closedQuestions.length; i++) {
-            let question = run.closedQuestions[i];
+        for(let i = 0; i < currentRun.closedQuestions.length; i++) {
+            let question = currentRun.closedQuestions[i];
             // skip question if not validated
             if(question.validated === false) break;
 
-            let questionAnswer = await this.questionAnswerRepo.findOne({ where: { question: question}, relations: ['answers']});
+            let questionAnswer = await this.questionAnswerRepo.findOne({ where: { run: { id: runId}, question: { id: question.id}}, relations: ['answers']});
             if(this.checkAnswer(question, questionAnswer.answers)) {
                 result.correctAnswers++;
             } else {
@@ -84,9 +93,33 @@ export class QuizService {
         return result;
     }
 
-    public async answerQuestion(id: number, question: number, answers: number[]) {
+    public async getRuns() {
+        // get all runs
+        let runs = await this.runRepo.find({ relations: ['openQuestions', 'closedQuestions']});
+
+        let runInfoList = [];
+        // sum up run stats
+        for(let i = 0; i < runs.length; i++) {
+            let run = runs[i];
+            let result = await this.getResult(run.id);
+
+            let runInfo = {
+                id: run.id,
+                code: run.code,
+                openQuestions: result.openQuestions,
+                closedQuestions: result.closedQuestions,
+                correctAnswers: result.correctAnswers,
+                wrongAnswers: result.wrongAnswers
+            }
+            runInfoList.push(runInfo);
+        }
+        
+        return runInfoList;
+    }
+
+    public async answerQuestion(runId: number, question: number, answers: string[]) {
         // save answer for question for run with id
-        let run = await this.runRepo.findOne({ where: { id: id}, relations: ['openQuestions', 'closedQuestions']});
+        let run = await this.runRepo.findOne({ where: { id: runId}, relations: ['openQuestions', 'closedQuestions']});
         let questionEntity = await this.questionRepo.findOne({ where: { id: question}, relations: ['answers']});
 
         if(!question) {
@@ -119,10 +152,11 @@ export class QuizService {
         // if not, return error
         let answerList = [];
         for(let i = 0; i < answers.length; i++) {
-            let answer = answers[i];
+            let answer : number = parseInt(answers[i]);
             let found = false;
             for(let j = 0; j < questionEntity.answers.length; j++) {
-                if(questionEntity.answers[j].id === answer) {
+                let curAnswer = questionEntity.answers[j];
+                if(curAnswer.id === answer) {
                     answerList.push(questionEntity.answers[j]);
                     found = true;
                     break;
@@ -136,6 +170,7 @@ export class QuizService {
 
         // store QuestionAnswer
         let questionAnswer = new QuestionAnswer();
+        questionAnswer.run = run;
         questionAnswer.question = questionEntity;
         questionAnswer.answers = answerList;
         questionAnswer = await this.questionAnswerRepo.save(questionAnswer);
