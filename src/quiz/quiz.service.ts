@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Answer from '../common/entities/Answer.entity.';
@@ -125,15 +125,15 @@ export class QuizService {
         let run = await this.runRepo.findOne({ where: { id: runId}, relations: ['openQuestions', 'closedQuestions']});
         let questionEntity = await this.questionRepo.findOne({ where: { id: question}, relations: ['answers']});
 
-        if(!question) {
-            return 'Invalid question';
+        if(!questionEntity) {
+            throw new BadRequestException('Question not found');
         }
 
         // check if question is already answered
         // if yes, return error
         for(let i = 0; i < run.closedQuestions.length; i++) {
             if(run.closedQuestions[i].id === question) {
-                return 'Question already answered';
+                throw new BadRequestException(' Question already answered');
             }
         }
 
@@ -147,7 +147,7 @@ export class QuizService {
                 break;
             }
             if(i === run.openQuestions.length - 1) {
-                return 'Question not open';
+                throw new BadRequestException(' Question not part of this Quiz Run');
             }
         }
 
@@ -166,7 +166,7 @@ export class QuizService {
                 }
             }
             if(!found) {
-                return 'Invalid answer';
+                throw new BadRequestException('Answer not part of the Question');
             }
         }
 
@@ -180,7 +180,25 @@ export class QuizService {
         
         run.closedQuestions.push(questionEntity);
         run = await this.runRepo.save(run);
-        return run;
+
+        let correct = this.checkAnswer(questionEntity, answerList);
+
+        let nextQuestion = null;
+        
+        try {
+            nextQuestion = await this.getNextQuestion(runId);
+        } catch (e) {
+
+        }
+
+        let result = {
+            correct: correct,
+            formerQuestion: questionEntity,
+            formerAnswers: answerList,
+            nextQuestion: nextQuestion
+        }
+        
+        return result;
     }
     
 }
