@@ -24,7 +24,9 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This is just some test project for playing around with NestJS. It's not considered for production.
+
+It offers a simple API to create and run Quizzes.
 
 ## Installation
 
