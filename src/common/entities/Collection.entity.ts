@@ -9,6 +9,9 @@ export default class Collection {
     @Column()
     public name: string;
 
+    @Column({type: "text", nullable: true})
+    public description: string;
+
     @ManyToMany(() => Question)
     @JoinTable()
     public questions: Question[];

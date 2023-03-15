@@ -11,6 +11,7 @@ import QuestionAnswer from './common/entities/QuestionAnswer.entity';
 import Run from './common/entities/Run.entity';
 import { QuestionModule } from './question/question.module';
 import { QuizModule } from './quiz/quiz.module';
+import { CollectionModule } from './collection/collection.module';
 
 @Module({
   imports: [ConfigModule.forRoot(), TypeOrmModule.forRootAsync({
@@ -27,7 +28,7 @@ import { QuizModule } from './quiz/quiz.module';
       "entities": [Question, Answer, Collection, Category, Run, QuestionAnswer]
     }),
      inject: [ConfigService]
-  }), QuestionModule, QuizModule],
+  }), QuestionModule, QuizModule, CollectionModule],
   controllers: [AppController],
   providers: [AppService],
 })
