@@ -12,6 +12,16 @@ export class QuizController {
       return this.quizService.createNewRun(code);
     }
 
+    @Post('/wrong/:id')
+    createNewWrongRun(@Param('id') id: number) {
+      return this.quizService.createNewWrongRun(id);
+    }    
+
+    @Get(':id')
+    getRun(@Param('id') id: number) {
+      return this.quizService.getRun(id);
+    }    
+
     @Get('/id/:runId')
     getNextQuestion(@Param('runId') runId: number) {
       return this.quizService.getNextQuestion(runId);
@@ -27,7 +37,7 @@ export class QuizController {
       return this.quizService.getResult(id);
     }
 
-    @Get('/list')
+    @Get('/list/all')
     getRuns() {
       return this.quizService.getRuns();
     }

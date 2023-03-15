@@ -26,6 +26,24 @@ export class QuizService {
         return run;
     }
 
+    public async createNewWrongRun(id: number) {
+        let previousRun = await this.runRepo.findOne({ where: { id: id}, relations: ['openQuestions', 'closedQuestions']});
+        if(!previousRun) {
+            throw new NotFoundException();
+        }
+
+        let result = await this.getResult(id);
+        let wrongQuestions = result.wrongClosedQuestions;
+
+        // create new run with all wrong questions
+        let run = new Run();
+        run.code = previousRun.code + ' - wrong rerun';
+        run.openQuestions = wrongQuestions;
+        run = await this.runRepo.save(run);
+
+        return run;
+    }    
+
     public async getNextQuestion(runId: number) {
         // get next open question for run with id
         let run = await this.runRepo.findOne({ where: { id: runId}, relations: ['openQuestions']});
@@ -75,8 +93,11 @@ export class QuizService {
             openQuestions: 0,
             closedQuestions: 0,
             correctAnswers: 0,
-            wrongAnswers: 0
+            wrongAnswers: 0,
+            correctClosedQuestions: [],
+            wrongClosedQuestions: []
         };
+
         result.openQuestions = currentRun.openQuestions.length;
         result.closedQuestions = currentRun.closedQuestions.length;
 
@@ -88,12 +109,27 @@ export class QuizService {
             let questionAnswer = await this.questionAnswerRepo.findOne({ where: { run: { id: runId}, question: { id: question.id}}, relations: ['answers']});
             if(this.checkAnswer(question, questionAnswer.answers)) {
                 result.correctAnswers++;
+                result.correctClosedQuestions.push(question);
             } else {
                 result.wrongAnswers++;
+                result.wrongClosedQuestions.push(question);
             }
         }
 
         return result;
+    }
+
+    public async getRun(id: number) {
+        let run = await this.runRepo.findOne({ where: { id: id}, relations: ['openQuestions', 'closedQuestions']});
+
+        if(!run) {
+            throw new NotFoundException();
+        } else {
+            // get result of closed questions
+            let result = await this.getResult(id);
+            
+            return result;
+        }
     }
 
     public async getRuns() {
