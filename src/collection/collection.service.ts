@@ -36,7 +36,7 @@ export class CollectionService {
       console.log(coll);
       this.collectionRepo.save(coll);
     } else {
-      return new NotFoundException();
+      throw new NotFoundException();
     }
   }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Answer from '../common/entities/Answer.entity.';
@@ -32,7 +32,12 @@ export class QuestionService {
     }
 
     public async getQuestionToValidate() {
-        return await this.questionRepo.findOne({ where: { validated: false }, relations: ['answers'] });
+        let q = await this.questionRepo.findOne({ where: { validated: false }, relations: ['answers'] });
+        if(q) {
+          return q;
+        } else {
+           throw new NotFoundException();
+        }
     }
 
     async addQuestion(addQuestion: CreateQuestionDto) {

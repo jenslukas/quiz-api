@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Answer from '../common/entities/Answer.entity.';
@@ -31,6 +31,9 @@ export class QuizService {
         let run = await this.runRepo.findOne({ where: { id: runId}, relations: ['openQuestions']});
         let question = run.openQuestions.shift();
         question = await this.questionRepo.findOne({ where: { id: question.id}, relations: ['answers']});
+        if(!question) {
+            throw new NotFoundException();
+        }
         return question;
     }
 
