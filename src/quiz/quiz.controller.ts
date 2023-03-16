@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import QuestionAnswerDto from './dto/QuestionAnswer.dto';
+import { QuestionRequest } from './dto/QuestionRequest.dto';
 import { QuizService } from './quiz.service';
 
 @Controller('quiz')
@@ -23,13 +24,13 @@ export class QuizController {
     }    
 
     @Get('/id/:runId')
-    getNextQuestion(@Param('runId') runId: number) {
-      return this.quizService.getNextQuestion(runId);
+    getNextQuestion(@Param('runId') runId: number, @Query('random') random: boolean) {
+      return this.quizService.getNextQuestion(runId, random ?? false);
     }
 
     @Post('/id/:runId')
     answerQuestion(@Param('runId') runId: number, @Body() answerDTO: QuestionAnswerDto) {
-      return this.quizService.answerQuestion(runId, answerDTO.questionId, answerDTO.answerIds);
+      return this.quizService.answerQuestion(runId, answerDTO);
     }
 
     @Get('/:id/result')

@@ -5,6 +5,7 @@ import Answer from '../common/entities/Answer.entity.';
 import Question from '../common/entities/Question.entity.';
 import QuestionAnswer from '../common/entities/QuestionAnswer.entity';
 import Run from '../common/entities/Run.entity';
+import QuestionAnswerDto from './dto/QuestionAnswer.dto';
 
 @Injectable()
 export class QuizService {
@@ -44,10 +45,19 @@ export class QuizService {
         return run;
     }    
 
-    public async getNextQuestion(runId: number) {
+    public async getNextQuestion(runId: number, random : boolean) {
         // get next open question for run with id
         let run = await this.runRepo.findOne({ where: { id: runId}, relations: ['openQuestions']});
-        let question = run.openQuestions.shift();
+        
+        // get first new question or random one
+        let question; 
+        if(random) {
+            let index = Math.floor(Math.random() * run.openQuestions.length);
+            question = run.openQuestions[index];
+        } else {
+            question = run.openQuestions.shift();
+        }
+
         question = await this.questionRepo.findOne({ where: { id: question.id}, relations: ['answers']});
         if(!question) {
             throw new NotFoundException();
@@ -156,7 +166,11 @@ export class QuizService {
         return runInfoList;
     }
 
-    public async answerQuestion(runId: number, question: number, answers: string[]) {
+    public async answerQuestion(runId: number, questionDto : QuestionAnswerDto) {
+        let question = questionDto.questionId;
+        let answers = questionDto.answerIds;
+        let random = questionDto.random ?? false;
+
         // save answer for question for run with id
         let run = await this.runRepo.findOne({ where: { id: runId}, relations: ['openQuestions', 'closedQuestions']});
         let questionEntity = await this.questionRepo.findOne({ where: { id: question}, relations: ['answers']});
@@ -219,10 +233,11 @@ export class QuizService {
 
         let correct = this.checkAnswer(questionEntity, answerList);
 
+        // get next question
         let nextQuestion = null;
         
         try {
-            nextQuestion = await this.getNextQuestion(runId);
+            nextQuestion = await this.getNextQuestion(runId, random);
         } catch (e) {
 
         }
