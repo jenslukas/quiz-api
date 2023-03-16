@@ -144,7 +144,7 @@ export class QuizService {
 
     public async getRuns() {
         // get all runs
-        let runs = await this.runRepo.find({ relations: ['openQuestions', 'closedQuestions']});
+        let runs = await this.runRepo.find({ where: { deleted: false }, relations: ['openQuestions', 'closedQuestions']});
 
         let runInfoList = [];
         // sum up run stats
@@ -252,4 +252,15 @@ export class QuizService {
         return result;
     }
     
+    public async deleteRun(id: number) {
+        // delete run with id
+        let run = await this.runRepo.findOne({ where: { id: id}, relations: ['openQuestions', 'closedQuestions']});
+        if(!run) {
+            throw new NotFoundException();
+        } else {
+            run.deleted = true;
+            await this.runRepo.save(run);
+        }
+        return
+    }
 }

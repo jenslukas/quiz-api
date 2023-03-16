@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import QuestionAnswerDto from './dto/QuestionAnswer.dto';
 import { QuestionRequest } from './dto/QuestionRequest.dto';
 import { QuizService } from './quiz.service';
@@ -31,6 +31,11 @@ export class QuizController {
     @Post('/id/:runId')
     answerQuestion(@Param('runId') runId: number, @Body() answerDTO: QuestionAnswerDto) {
       return this.quizService.answerQuestion(runId, answerDTO);
+    }
+
+    @Delete('/:id')
+    deleteRun(@Param('id') id: number) {
+      return this.quizService.deleteRun(id);
     }
 
     @Get('/:id/result')

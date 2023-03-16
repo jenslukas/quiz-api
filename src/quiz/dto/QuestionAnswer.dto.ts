@@ -1,8 +1,7 @@
-import { PickType } from "@nestjs/swagger";
 import { IsNotEmpty } from "class-validator";
-import QuestionAnswer from "../../common/entities/QuestionAnswer.entity";
+import { QuestionRequest } from "./QuestionRequest.dto";
 
-export default class QuestionAnswerDto {
+export default class QuestionAnswerDto extends QuestionRequest {
     @IsNotEmpty()
     public questionId: number;
 

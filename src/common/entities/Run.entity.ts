@@ -23,6 +23,9 @@ export default class Run {
     @Column({nullable: true})
     public description: string;
 
+    @Column({ default: false })
+    public deleted: boolean;
+
     @CreateDateColumn()
     public created_at: Date;
 
